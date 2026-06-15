@@ -1,93 +1,56 @@
 """
-gestor.py
-Módulo encargado de agregar y actualizar países en la lista.
+archivos.py
+Módulo encargado de la lectura y escritura del archivo CSV de países.
 """
 
-from archivos import guardar_paises
+import csv
+import os
+
+NOMBRE_ARCHIVO = "paises.csv"
+CAMPOS = ["nombre", "poblacion", "superficie", "continente"]
 
 
-def es_texto_valido(texto):
+def leer_paises():
     """
-    Verifica que el texto solo contenga letras y espacios.
+    Lee el archivo CSV y devuelve una lista de diccionarios,
+    uno por cada país. Si el archivo no existe, devuelve lista vacía.
     """
-    return all(c.isalpha() or c.isspace() for c in texto)
+    paises = []
 
-
-def agregar_pais(paises):
-    """
-    Solicita los datos de un nuevo país por consola y lo agrega a la lista.
-    No se permiten campos vacíos.
-    """
-    print("\n--- AGREGAR PAÍS ---")
-
-    nombre = input("Nombre del país: ").strip()
-    if not nombre:
-        print("[ERROR] El nombre no puede estar vacío.")
-        return
-    if not es_texto_valido(nombre):
-        print("[ERROR] El nombre solo puede contener letras y espacios.")
-        return
-
-    # Verificar que no exista ya un país con ese nombre
-    for p in paises:
-        if p["nombre"].lower() == nombre.lower():
-            print(f"[ERROR] Ya existe un país con el nombre '{nombre}'.")
-            return
+    if not os.path.exists(NOMBRE_ARCHIVO):
+        print(f"[AVISO] No se encontró el archivo '{NOMBRE_ARCHIVO}'.")
+        return paises
 
     try:
-        poblacion = int(input("Población: ").strip())
-        superficie = int(input("Superficie en km²: ").strip())
-    except ValueError:
-        print("[ERROR] Población y superficie deben ser números enteros.")
-        return
+        with open(NOMBRE_ARCHIVO, newline="", encoding="utf-8") as archivo:
+            lector = csv.DictReader(archivo)
+            for fila in lector:
+                # Convertir tipos de datos correctamente
+                pais = {
+                    "nombre": fila["nombre"].strip(),
+                    "poblacion": int(fila["poblacion"]),
+                    "superficie": int(fila["superficie"]),
+                    "continente": fila["continente"].strip()
+                }
+                paises.append(pais)
+    except ValueError as e:
+        print(f"[ERROR] Formato inválido en el CSV: {e}")
+    except Exception as e:
+        print(f"[ERROR] No se pudo leer el archivo: {e}")
 
-    continente = input("Continente: ").strip()
-    if not continente:
-        print("[ERROR] El continente no puede estar vacío.")
-        return
-    if not es_texto_valido(continente):
-        print("[ERROR] El continente solo puede contener letras y espacios.")
-        return
-
-    pais = {
-        "nombre": nombre,
-        "poblacion": poblacion,
-        "superficie": superficie,
-        "continente": continente
-    }
-
-    paises.append(pais)
-    guardar_paises(paises)
-    print(f"[OK] País '{nombre}' agregado correctamente.")
+    return paises
 
 
-def actualizar_pais(paises):
+def guardar_paises(paises):
     """
-    Busca un país por nombre y permite actualizar su población y superficie.
+    Guarda la lista de diccionarios de países en el archivo CSV.
+    Sobreescribe el contenido anterior.
     """
-    print("\n--- ACTUALIZAR PAÍS ---")
-
-    nombre = input("Nombre del país a actualizar: ").strip()
-    if not nombre:
-        print("[ERROR] El nombre no puede estar vacío.")
-        return
-    if not es_texto_valido(nombre):
-        print("[ERROR] El nombre solo puede contener letras y espacios.")
-        return
-
-    for pais in paises:
-        if pais["nombre"].lower() == nombre.lower():
-            try:
-                poblacion = int(input(f"Nueva población (actual: {pais['poblacion']}): ").strip())
-                superficie = int(input(f"Nueva superficie (actual: {pais['superficie']}): ").strip())
-            except ValueError:
-                print("[ERROR] Población y superficie deben ser números enteros.")
-                return
-
-            pais["poblacion"] = poblacion
-            pais["superficie"] = superficie
-            guardar_paises(paises)
-            print(f"[OK] País '{nombre}' actualizado correctamente.")
-            return
-
-    print(f"[ERROR] No se encontró ningún país con el nombre '{nombre}'.")
+    try:
+        with open(NOMBRE_ARCHIVO, "w", newline="", encoding="utf-8") as archivo:
+            escritor = csv.DictWriter(archivo, fieldnames=CAMPOS)
+            escritor.writeheader()
+            escritor.writerows(paises)
+        print("[OK] Datos guardados correctamente.")
+    except Exception as e:
+        print(f"[ERROR] No se pudo guardar el archivo: {e}")
