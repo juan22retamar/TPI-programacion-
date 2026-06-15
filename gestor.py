@@ -6,6 +6,13 @@ Módulo encargado de agregar y actualizar países en la lista.
 from archivos import guardar_paises
 
 
+def es_texto_valido(texto):
+    """
+    Verifica que el texto solo contenga letras y espacios.
+    """
+    return all(c.isalpha() or c.isspace() for c in texto)
+
+
 def agregar_pais(paises):
     """
     Solicita los datos de un nuevo país por consola y lo agrega a la lista.
@@ -16,6 +23,9 @@ def agregar_pais(paises):
     nombre = input("Nombre del país: ").strip()
     if not nombre:
         print("[ERROR] El nombre no puede estar vacío.")
+        return
+    if not es_texto_valido(nombre):
+        print("[ERROR] El nombre solo puede contener letras y espacios.")
         return
 
     # Verificar que no exista ya un país con ese nombre
@@ -34,6 +44,9 @@ def agregar_pais(paises):
     continente = input("Continente: ").strip()
     if not continente:
         print("[ERROR] El continente no puede estar vacío.")
+        return
+    if not es_texto_valido(continente):
+        print("[ERROR] El continente solo puede contener letras y espacios.")
         return
 
     pais = {
@@ -57,6 +70,9 @@ def actualizar_pais(paises):
     nombre = input("Nombre del país a actualizar: ").strip()
     if not nombre:
         print("[ERROR] El nombre no puede estar vacío.")
+        return
+    if not es_texto_valido(nombre):
+        print("[ERROR] El nombre solo puede contener letras y espacios.")
         return
 
     for pais in paises:
